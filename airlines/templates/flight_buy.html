@@ -1,0 +1,220 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flight Seat Selection</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/material-components-web/10.0.0/material-components-web.min.css">
+
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #F5F5F5;
+        }
+
+        .container {
+            max-width: 30%;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #FFFFFF;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.12);
+            border-radius: 4px;
+        }
+
+        .flight-details {
+            margin-bottom: 20px;
+            text-align: center;
+
+        }
+
+        .seat-info {
+            margin-bottom: 20px;
+            text-align: center;
+
+        }
+
+        .seat-map {
+            display: grid;
+            grid-gap: 10px;
+        }
+
+        .seat-row {
+            display: flex;
+            justify-content: center;
+
+        }
+
+        .seat {
+            width: 64px;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #E0E0E0;
+            border-radius: 4px;
+            margin: 5px;
+            transition: background-color 0.3s ease-in-out;
+        }
+
+        .seat.selected {
+            background-color: #2196F3;
+            animation: pulse 1s infinite;
+        }
+
+        .unavailable {
+            background-color: #BDBDBD;
+            pointer-events: none;
+        }
+
+        .seat-button {
+            width: 100%;
+            height: 100%;
+            background: none;
+            border: none;
+            cursor: pointer;
+
+        }
+
+        .buy-button {
+            text-align: center;
+        }
+
+        .btn {
+            background-color: #2196F3;
+            color: #FFFFFF;
+            border: none;
+            padding: 10px 20px;
+            font-size: 14px;
+            font-weight: 500;
+            text-transform: uppercase;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.1);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+    </style>
+
+<div class="container">
+    <div class="flight-details">
+        <h3>Flight Details</h3>
+
+        <p>Flight: <strong>{{ flight.flight_number}}</strong> {{ flight.airplane.model.name }} </p>
+        <p>From <strong>{{ flight.departure_airport }}</strong> to <strong>{{ flight.destination_airport }}</strong></p>
+        <p>Departure <strong>{{ flight.departure|date:'Y-m-d  H:i' }}</strong> Arrival <strong>{{ flight.arrived|date:'Y-m-d  H:i' }}</strong> </p>
+
+    </div>
+
+    <form id="seat-selection-form" onsubmit="checkSeatAvailability(event)" method="post">
+        {% csrf_token %}
+        <div class="seat-info">
+            <h3 class="selected-seat">Seat Information:</h3>
+            <p id="selected-seat-name"></p>
+            <p id="selected-seat-price"></p>
+            <p id="selected-seat-type"></p>
+            <div class="buy-button">
+                <input type="hidden" name="selected_seat" value="" id="selected_seat" style="display: none;" required>
+                {% if user.is_authenticated %}
+
+                <input type="submit" class="btn" value="Buy Seat" id="buy" style="display: none;">
+                {% else %}
+                <h4>Log in to buy</h4>
+                {% endif %}
+            </div>
+        </div>
+    </form>
+
+    <div class="seat-map">
+        {% for row in seats %}
+        <div class="seat-row">
+            {% for seat in row %}
+            <div class="seat selected {% if not seat.available %}unavailable{% endif %}">
+                <button type="button" class="seat-button" {% if not seat.available %}disabled{% endif %} id="seat_{{seat.id}}"
+                        onclick="displaySeatInfo('{{ seat.name }}', '{{ seat.seat_type }}', {{seat.id}})">
+                    {{ seat.name }}
+                </button>
+            </div>
+            {% endfor %}
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/material-components-web/10.0.0/material-components-web.min.js"></script>
+
+<script>
+
+        const seats = document.getElementsByClassName('seat');
+        for (let i = 0; i < seats.length; i++) {
+            seats[i].classList.remove('selected');
+
+        }
+            const buttonRipple = new mdc.ripple.MDCRipple(document.querySelector('.btn'));
+    const buttonRipples = new mdc.ripple.MDCRipple(document.querySelector('.seat-button'));
+    function displaySeatInfo(name, type, id) {
+        document.getElementById('selected-seat-name').innerHTML = 'Seat: <strong>' + name + '</strong>';
+        document.getElementById('selected-seat-type').innerHTML = 'Type: <strong>' + type + '</strong>';
+        document.getElementById('selected-seat-price').innerHTML = 'Price: <strong>' + {{ flight.prices|safe }}[type] + ' $</strong>';
+        document.getElementById('selected_seat').value = name;
+
+        var element = document.getElementById('buy');
+element.style.removeProperty("display");
+        // Remove the "selected" class from all seats
+        const seats = document.getElementsByClassName('seat');
+        for (let i = 0; i < seats.length; i++) {
+            seats[i].classList.remove('selected');
+        }
+
+        // Add the "selected" class to the clicked seat
+        const selectedSeat = document.getElementById('seat_'+id);
+        selectedSeat.closest('.seat').classList.add('selected');
+    }
+
+    function checkSeatAvailability(event) {
+        event.preventDefault(); // Prevent the form from submitting
+
+        var selectedSeat = document.getElementById('selected_seat').value;
+        if (selectedSeat === '') {
+            alert('Please select a seat.');
+            return;
+        }
+
+        var checkSeatURL = "{% url 'check_seat' flight.id %}?seat=" + selectedSeat;
+
+        // Send an asynchronous request to the server to check seat availability
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET', checkSeatURL);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.setRequestHeader('X-CSRFToken', '{{ csrf_token }}');
+
+        xhr.onload = function () {
+            if (xhr.status === 200) {
+                var response = JSON.parse(xhr.responseText);
+                if (!response.available) {
+                    alert('This seat is already occupied. Please select another seat.');
+                    location.reload();
+                } else {
+                    // The seat is available, proceed with the purchase
+                    document.getElementById('seat-selection-form').submit();
+                }
+            } else {
+                alert('Failed to check seat availability. Please try again later.');
+            }
+        };
+        xhr.send(JSON.stringify({ selectedSeat: selectedSeat }));
+    }
+</script>
+
+
+{% endblock %}

@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<style>
+  .container {
+    max-width: 30%;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: #FFFFFF;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.12);
+    border-radius: 4px;
+  }
+
+  h2 {
+    text-align: center;
+  }
+
+  .form-group {
+    margin-bottom: 20px;
+  }
+
+  label {
+    display: block;
+    font-weight: 500;
+    margin-bottom: 5px;
+  }
+
+  input[type="search"],
+
+  input[type="date"] {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 16px;
+
+  }
+    input[type="date"] {
+    width: 95%;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 16px;
+
+  }
+
+  input[type="submit"] {
+    background-color: #2196F3;
+    color: #FFFFFF;
+    border: none;
+    padding: 10px 20px;
+    font-size: 14px;
+    font-weight: 500;
+    text-transform: uppercase;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+
+  .error-message {
+    color: red;
+    font-size: 14px;
+    font-weight: 500;
+  }
+
+  .invalid-airport {
+    border-color: red;
+  }
+</style>
+    <title>Buy Air Tickets</title>
+<div class="container">
+  <h2>Buy Air Tickets</h2>
+  <form method="post" onsubmit="return validateForm()" action="{% url 'flights' %}">
+    {% csrf_token %}
+    <datalist id="airports">
+      {% for air in airports %}
+      <option value="{{ air.name }}" label="{{ air.city.country }}, {{ air.city }}" data-id="{{ air.id }}">
+      </option>
+      {% endfor %}
+    </datalist>
+    <div class="form-group">
+      <label for="departure">Departure:</label>
+      <input type="search" id="departure" name="departure" list="airports" required>
+      <span id="airport-error1" class="error-message"></span>
+    </div>
+    <div class="form-group">
+      <label for="destination">Destination:</label>
+      <input type="search" id="destination" name="destination" list="airports" required>
+      <span id="airport-error2" class="error-message"></span>
+    </div>
+    <div class="form-group">
+      <label for="date">Date:</label>
+      <input type="date" id="date" name="date" required>
+    </div>
+    <div class="form-group" style=" text-align: center;">
+      <input type="submit" value="Buy Tickets">
+    </div>
+
+    <input type="hidden" id="departure-id" name="departure_id" value="">
+    <input type="hidden" id="destination-id" name="destination_id" value="">
+  </form>
+</div>
+
+<script>
+    function validateForm() {
+           var departureInput = document.getElementById("departure");
+    var destinationInput = document.getElementById("destination");
+    var departureIdInput = document.getElementById("departure-id");
+    var destinationIdInput = document.getElementById("destination-id");
+        var errorElement1 = document.getElementById('airport-error1');
+        var errorElement2 = document.getElementById('airport-error2');
+
+    // Поиск выбранных аэропортов в списке
+    var selectedDeparture = document.querySelector("#airports option[value='" + departureInput.value + "']");
+    var selectedDestination = document.querySelector("#airports option[value='" + destinationInput.value + "']");
+
+
+        if (!selectedDeparture) {
+            errorElement1.textContent = 'Please select a valid airport from the list.';
+            document.getElementById('departure').classList.add('invalid-airport');
+            return false;
+        } else {
+            errorElement1.textContent = '';
+            document.getElementById('departure').classList.remove('invalid-airport');
+            departureIdInput.value = selectedDeparture.getAttribute("data-id");
+        }
+
+
+        if (!selectedDestination) {
+            errorElement2.textContent = 'Please select a valid airport from the list.';
+            document.getElementById('destination').classList.add('invalid-airport');
+            return false;
+        } else {
+            errorElement2.textContent = '';
+            document.getElementById('destination').classList.remove('invalid-airport');
+            destinationIdInput.value = selectedDestination.getAttribute("data-id");
+        }
+        if (selectedDestination == selectedDeparture){
+            errorElement2.textContent = 'Departure and destination cannot be the same..';
+            document.getElementById('destination').classList.add('invalid-airport');
+            return false;
+        }
+       return true
+    }
+
+</script>
+
+
+
+
+{% endblock %}

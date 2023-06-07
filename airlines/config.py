@@ -1,0 +1,8 @@
+SAFE_METHODS = 'GET', 'HEAD', 'OPTIONS', 'PATCH'
+UNSAFE_METHODS = 'POST', 'PUT', 'DELETE'
+
+BOOST_URL = 'http://10.82.41.66:8000/rest/payment/{id}'
+BOOST_REDIRECT = 'http://10.82.41.66:8000/payment/{id}'
+BOOST_HEADERS = {"Authorization": 'Token 9307fa99f0a58a25445e259a3f0fd391444c61af'}
+BOOST_ACCOUNT = '25551abe-1b7d-4dbc-9b65-f7630be72748'
+BOOST_CALLBACK_HEADERS = {"Authorization": "Token 253b574342d3d82c5a6a4e0f73fa0091dd0f4de5"}

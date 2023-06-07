@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    /* CSS styling for the flights list */
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f2f2f2;
+    }
+
+    .container {
+      width: 50%;
+      margin: 0 auto;
+      padding: 20px;
+
+    }
+
+    h1 {
+      text-align: center;
+      color: #333;
+    }
+
+    .flight-card {
+      background-color: #fff;
+      border-radius: 4px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+
+    .flight-card h2 {
+      margin-top: 0;
+      margin-bottom: 10px;
+    }
+
+    .flight-card p {
+      margin: 0;
+    }
+
+    .buy-button {
+      display: inline-block;
+      background-color: #4CAF50;
+      color: #fff;
+      padding: 10px 20px;
+      text-decoration: none;
+      border-radius: 4px;
+      transition: background-color 0.3s ease;
+      margin-top: 1%;
+    }
+
+    .buy-button:hover {
+      background-color: #45a049;
+    }
+  </style>
+
+
+  <div class="container">
+    {% if flights %}
+    <h1>Flights</h1>
+    {% else %}
+    <h1>Flights not found </h1>
+    {% endif %}
+
+    {% for flight in flights %}
+    <div class="flight-card">
+      <h2>{{ flight.flight_number }}</h2>
+      <p>Departure: {{ flight.departure_airport.name }}</p>
+      <p>Destination: {{ flight.destination_airport.name }}</p>
+      <p>Status: {{ flight.status }}</p>
+      <p>Airplane: {{ flight.airplane.name }}</p>
+      <a class="buy-button" href="{% url 'flight_buy' flight.id %}">Buy</a>
+    </div>
+    {% endfor %}
+  </div>
+
+
+{% endblock %}

@@ -1,0 +1,149 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+    .profile {
+        max-width: 400px;
+        margin: 0 auto;
+        padding: 20px;
+        background-color: #FFFFFF;
+        border-radius: 5px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+            .content {
+            margin: 20px auto;
+            background-color: #FFFFFF;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.12);
+            padding: 20px;
+            border-radius: 4px;
+            width: 80%;
+        }
+
+    h1 {
+        font-size: 24px;
+        text-align: center;
+    }
+
+    .name {
+        font-weight: bold;
+    }
+
+    .form-group {
+        margin-bottom: 15px;
+    }
+
+    label {
+        display: block;
+        margin-bottom: 5px;
+    }
+
+    input[type="date"] {
+        width: 100%;
+        padding: 8px;
+        font-size: 16px;
+        border-radius: 5px;
+        border: 1px solid #ccc;
+    }
+
+    .btn {
+        display: block;
+        width: 100%;
+        padding: 10px;
+        font-size: 16px;
+        font-weight: bold;
+        text-align: center;
+        color: #fff;
+        background-color: #4CAF50;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+       table {
+       text-align: center;
+        width: 100%;
+        margin-top: 30px;
+        border-collapse: collapse;
+    }
+
+    th {
+        background-color: #4caf50;
+        color: #ffffff;
+        font-weight: bold;
+        padding: 10px;
+    }
+
+    td {
+        padding: 10px;
+        border-bottom: 1px solid #cccccc;
+    }
+</style>
+
+<div class="profile">
+<h1>Welcome, {{ client.user.first_name }}!</h1>
+    <p class="name">Login: {{ client.user.username }}</p>
+<p class="name">Name: {{ client.user.last_name }} {{ client.user.first_name }}</p>
+<div class="form-group">
+<label for="date"><strong>Date of Birth:</strong></label>
+<input name="date" id="date" type="date" value="{{ client.date_of_birth_day|date:'Y-m-d' }}">
+</div>
+<br>
+<button class="btn" onclick="save()">Save</button>
+</div>
+<div class="content" style="weight: 40%">
+    <h1>Your tickets</h1>
+ <table>
+        <thead>
+            <tr>
+                <th>Flight</th>
+                <th>Departure</th>
+                <th>Destination</th>
+                <th>Seat</th>
+                <th>Status</th>
+                <th>Price</th>
+                <th>Payment</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for ticket in tickets %}
+                <tr>
+                    <td>{{ ticket.ticket.flight.flight_number}} {{ ticket.flight.airplane.model.name }}</td>
+                     <td>{{ ticket.ticket.flight.departure_airport }}<br>
+                     at {{ticket.ticket.flight.departure|date:'Y-m-d  H:i' }}</td>
+                     <td>{{ ticket.ticket.flight.destination_airport }}<br>
+                     at {{ticket.ticket.flight.arrived|date:'Y-m-d  H:i' }}</td>
+                    <td>{{ ticket.ticket.seat }}</td>
+                    <td>{{ ticket.ticket.flight.get_status_display }}</td>
+                    <td>{{ ticket.ticket.price }}</td>
+                    {% if ticket.url %}
+                    <td><a href="{{ ticket.url }}">{{ ticket.get_status_display}}</a></td>
+
+                    {% else %}
+                    <td>{{ ticket.get_status_display}}</td>
+                    {% endif %}
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+
+    <script>
+        function save() {
+            // Retrieve the input values
+            var dateOfBirth = document.getElementById('date').value;
+
+            // Create a new XMLHttpRequest object
+
+            var url = "{% url 'profile' %}";
+ fetch(url, {
+        method: "POST",
+        body: JSON.stringify({"date":dateOfBirth}),
+        headers: { "X-CSRFToken": '{{ csrf_token }}',"Name":"Save"},
+    })
+    .then(response => {
+    window.location.href = '{{ request.get_full_path }}'})
+    .catch(err => alert(err));
+};
+
+    </script>
+{% endblock %}
